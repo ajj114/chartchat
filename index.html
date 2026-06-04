@@ -1,62 +1,83 @@
+
 <!doctype html>
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover"
+  />
   <title>차트 채팅 프로토타입</title>
   <style>
     :root {
       --blue: #1188ff;
-      --text: #111;
-      --phone-w: 393px;
+      --stage-shift: 0px;
+      --image-aspect: 941 / 2048;
     }
 
     * { box-sizing: border-box; }
 
-    html, body {
+    html,
+    body {
       margin: 0;
-      min-height: 100%;
-      background: #eef1f5;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+      color: #111;
       font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", sans-serif;
-      color: var(--text);
       overscroll-behavior: none;
+      -webkit-text-size-adjust: 100%;
+      touch-action: manipulation;
     }
 
     body {
-      display: grid;
-      place-items: start center;
-      padding: 18px 0;
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    .phone {
+    button,
+    input {
+      font: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .stage {
       position: relative;
-      width: min(100vw, var(--phone-w));
+      height: 100svh;
+      aspect-ratio: var(--image-aspect);
+      flex: 0 0 auto;
       overflow: hidden;
       background: #fff;
-      box-shadow: 0 18px 55px rgba(0, 0, 0, .16);
       isolation: isolate;
-      transition: top .18s ease;
+      transform: translate3d(0, calc(var(--stage-shift) * -1), 0);
+      transition: transform .18s ease;
+      user-select: none;
     }
 
-    @media (max-width: 480px) {
-      body { display: block; padding: 0; background: #fff; }
-      .phone { width: 100vw; box-shadow: none; }
+    @supports (height: 100dvh) {
+      .stage { height: 100dvh; }
     }
 
     .chart-img {
       display: block;
       width: 100%;
-      height: auto;
+      height: 100%;
+      object-fit: fill;
       user-select: none;
       -webkit-user-drag: none;
+      pointer-events: none;
     }
 
     .control-cover {
       position: absolute;
-      top: 21.3%;
-      right: 2.8%;
-      width: 25.5%;
-      height: 4.2%;
+      top: 21.4%;
+      right: 1.5%;
+      width: 27.5%;
+      height: 4.25%;
       background: #fff;
       border-radius: 10px;
       z-index: 4;
@@ -64,21 +85,21 @@
 
     .chat-toggle-wrap {
       position: absolute;
-      top: 21.78%;
-      right: 4.6%;
+      top: 21.75%;
+      right: 3.7%;
       z-index: 5;
       display: flex;
       align-items: center;
       gap: 6px;
-      font-size: 12px;
-      font-weight: 700;
+      font-size: clamp(11px, 3.1vh, 13px);
+      font-weight: 800;
       line-height: 1;
       color: #111;
     }
 
     .switch {
-      width: 43px;
-      height: 22px;
+      width: clamp(38px, 5.4vh, 45px);
+      height: clamp(20px, 2.75vh, 23px);
       border: 0;
       border-radius: 999px;
       background: #aeb5bd;
@@ -91,8 +112,8 @@
     .switch::before {
       content: "";
       display: block;
-      width: 18px;
-      height: 18px;
+      width: calc(clamp(20px, 2.75vh, 23px) - 4px);
+      height: calc(clamp(20px, 2.75vh, 23px) - 4px);
       border-radius: 50%;
       background: #fff;
       box-shadow: 0 1px 3px rgba(0,0,0,.22);
@@ -101,29 +122,74 @@
     }
 
     .switch[aria-checked="true"] { background: var(--blue); }
-    .switch[aria-checked="true"]::before { transform: translateX(21px); }
+    .switch[aria-checked="true"]::before { transform: translateX(clamp(18px, 2.65vh, 22px)); }
+
+    .chat-layer {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 29.2%;
+      bottom: 27.2%;
+      z-index: 3;
+      overflow: hidden;
+      pointer-events: none;
+      display: none;
+    }
+
+    .chat-layer.is-on { display: block; }
+
+    .floating-chat {
+      position: absolute;
+      max-width: 58%;
+      font-size: clamp(11px, 1.55vh, 13px);
+      line-height: 1.38;
+      color: rgba(0, 0, 0, .82);
+      text-shadow: 0 1px 0 rgba(255,255,255,.72);
+      white-space: normal;
+      word-break: break-word;
+      animation: floatUp 4.8s linear forwards;
+    }
+
+    .floating-chat .name {
+      display: block;
+      margin-bottom: 2px;
+      color: rgba(0, 0, 0, .42);
+      font-weight: 800;
+    }
+
+    .floating-chat .msg {
+      display: block;
+      font-weight: 800;
+    }
+
+    @keyframes floatUp {
+      0%   { opacity: 0; transform: translateY(18px); }
+      9%   { opacity: 1; }
+      78%  { opacity: .92; }
+      100% { opacity: 0; transform: translateY(-92px); }
+    }
 
     .talk-btn {
       position: absolute;
-      right: 4.7%;
+      right: 4.8%;
       bottom: 26.9%;
       z-index: 6;
-      min-width: 82px;
-      height: 38px;
+      min-width: clamp(76px, 10vh, 88px);
+      height: clamp(36px, 4.8vh, 42px);
       padding: 0 20px;
       border: 0;
       border-radius: 999px;
       background: var(--blue);
       color: #fff;
-      font-size: 13px;
-      font-weight: 800;
+      font-size: clamp(12px, 1.7vh, 14px);
+      font-weight: 900;
       box-shadow: 0 4px 10px rgba(0, 104, 204, .28);
       cursor: pointer;
       touch-action: none;
       transform: translateY(8px) scale(.98);
       opacity: 0;
       pointer-events: none;
-      transition: opacity .18s ease, transform .18s ease;
+      transition: opacity .18s ease, transform .18s ease, box-shadow .18s ease;
     }
 
     .talk-btn.is-visible {
@@ -139,71 +205,28 @@
     }
 
     .keyboard-dim {
-      position: absolute;
+      position: fixed;
       inset: 0;
-      z-index: 8;
+      z-index: 20;
       display: none;
       border: 0;
       padding: 0;
-      background: rgba(0, 0, 0, .07);
+      background: rgba(0, 0, 0, .04);
       cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
     }
 
     .keyboard-dim.is-open { display: block; }
 
-    .chat-layer {
-      position: absolute;
-      left: 0;
-      right: 0;
-      top: 29.4%;
-      bottom: 27.5%;
-      z-index: 3;
-      overflow: hidden;
-      pointer-events: none;
-    }
-
-    .floating-chat {
-      position: absolute;
-      max-width: 58%;
-      font-size: 12px;
-      line-height: 1.38;
-      color: rgba(0, 0, 0, .82);
-      text-shadow: 0 1px 0 rgba(255,255,255,.7);
-      white-space: normal;
-      word-break: break-word;
-      animation: floatUp 4.8s linear forwards;
-    }
-
-    .floating-chat .name {
-      display: block;
-      margin-bottom: 2px;
-      color: rgba(0, 0, 0, .42);
-      font-weight: 700;
-    }
-
-    .floating-chat .msg {
-      display: block;
-      font-weight: 700;
-    }
-
-    @keyframes floatUp {
-      0%   { opacity: 0; transform: translateY(18px); }
-      9%   { opacity: 1; }
-      78%  { opacity: .92; }
-      100% { opacity: 0; transform: translateY(-92px); }
-    }
-
     .input-panel {
-      position: absolute;
-      left: 2%;
-      right: 2%;
-      bottom: 34.6%;
-      z-index: 12;
+      position: fixed;
+      left: 8px;
+      bottom: calc(env(safe-area-inset-bottom) + 8px);
+      z-index: 30;
       display: none;
       align-items: center;
       gap: 6px;
-      min-height: 36px;
+      width: calc(100vw - 16px);
+      min-height: 38px;
     }
 
     .input-panel.is-open { display: flex; }
@@ -211,13 +234,14 @@
     .chat-input {
       flex: 1;
       min-width: 0;
-      height: 34px;
+      height: 36px;
       padding: 0 10px;
       border: 1px solid rgba(0, 0, 0, .25);
       border-radius: 8px;
       background: #fff;
       color: #111;
       font-size: 16px;
+      line-height: 36px;
       outline: none;
       box-shadow: 0 1px 2px rgba(0,0,0,.04);
     }
@@ -227,20 +251,20 @@
 
     .send-btn {
       width: 70px;
-      height: 34px;
+      height: 36px;
       border: 0;
       border-radius: 8px;
       background: var(--blue);
       color: #fff;
       font-size: 12px;
-      font-weight: 800;
+      font-weight: 900;
       cursor: pointer;
     }
 
     .count {
       position: absolute;
       right: 80px;
-      top: -16px;
+      top: -17px;
       padding: 2px 5px;
       border-radius: 999px;
       background: rgba(17, 24, 39, .74);
@@ -258,12 +282,12 @@
     }
 
     .desktop-keyboard {
-      position: absolute;
+      position: fixed;
       left: 0;
       right: 0;
       bottom: 0;
-      height: 34.2%;
-      z-index: 10;
+      height: min(34vh, 310px);
+      z-index: 25;
       display: none;
       padding: 10px 4px 8px;
       background: #2d2d2d;
@@ -299,18 +323,17 @@
     .key:active { transform: translateY(1px); filter: brightness(1.12); }
 
     .toast {
-      position: absolute;
+      position: fixed;
       left: 50%;
       top: 50%;
-      z-index: 30;
-      width: min(82%, 330px);
+      z-index: 60;
+      width: min(82vw, 330px);
       padding: 14px 16px;
-      border: 0;
       border-radius: 16px;
-      background: rgba(17, 24, 39, .88);
+      background: rgba(17, 24, 39, .9);
       color: #fff;
       font-size: 14px;
-      font-weight: 800;
+      font-weight: 900;
       line-height: 1.45;
       text-align: center;
       box-shadow: 0 12px 32px rgba(0, 0, 0, .24);
@@ -327,7 +350,7 @@
   </style>
 </head>
 <body>
-  <main class="phone" id="phone" aria-label="삼성전자 차트 채팅 화면">
+  <main class="stage" id="stage" aria-label="삼성전자 차트 채팅 화면">
     <img class="chart-img" src="assets/chart_base.png" alt="삼성전자 차트 화면" />
 
     <div class="control-cover" aria-hidden="true"></div>
@@ -337,44 +360,45 @@
     </div>
 
     <div class="chat-layer" id="chatLayer" aria-live="polite"></div>
-    <button class="keyboard-dim" id="chatDim" type="button" aria-label="채팅 입력창 닫기"></button>
     <button class="talk-btn" id="talkBtn" type="button">말하기</button>
-
-    <form class="input-panel" id="inputPanel" autocomplete="off">
-      <span class="count" id="count">0/30</span>
-      <input
-        class="chat-input"
-        id="chatInput"
-        type="text"
-        inputmode="text"
-        maxlength="30"
-        placeholder="채팅을 입력하세요."
-        aria-label="채팅 입력"
-      />
-      <button class="send-btn" type="submit">보내기</button>
-    </form>
-
-    <section class="desktop-keyboard" id="fakeKeyboard" aria-hidden="true">
-      <div class="key-row r1">
-        <button class="key" data-key="ㅂ">ㅂ</button><button class="key" data-key="ㅈ">ㅈ</button><button class="key" data-key="ㄷ">ㄷ</button><button class="key" data-key="ㄱ">ㄱ</button><button class="key" data-key="ㅅ">ㅅ</button><button class="key" data-key="ㅛ">ㅛ</button><button class="key" data-key="ㅕ">ㅕ</button><button class="key" data-key="ㅑ">ㅑ</button><button class="key" data-key="ㅐ">ㅐ</button><button class="key" data-key="ㅔ">ㅔ</button>
-      </div>
-      <div class="key-row r2">
-        <button class="key" data-key="ㅁ">ㅁ</button><button class="key" data-key="ㄴ">ㄴ</button><button class="key" data-key="ㅇ">ㅇ</button><button class="key" data-key="ㄹ">ㄹ</button><button class="key" data-key="ㅎ">ㅎ</button><button class="key" data-key="ㅗ">ㅗ</button><button class="key" data-key="ㅓ">ㅓ</button><button class="key" data-key="ㅏ">ㅏ</button><button class="key" data-key="ㅣ">ㅣ</button>
-      </div>
-      <div class="key-row r3">
-        <button class="key func" data-action="shift">⇧</button><button class="key" data-key="ㅋ">ㅋ</button><button class="key" data-key="ㅌ">ㅌ</button><button class="key" data-key="ㅊ">ㅊ</button><button class="key" data-key="ㅍ">ㅍ</button><button class="key" data-key="ㅠ">ㅠ</button><button class="key" data-key="ㅜ">ㅜ</button><button class="key" data-key="ㅡ">ㅡ</button><button class="key func" data-action="backspace">⌫</button>
-      </div>
-      <div class="key-row r4">
-        <button class="key func" data-key="123">123</button><button class="key func" data-key="😊">😊</button><button class="key space" data-key=" ">스페이스</button><button class="key func enter" data-action="send">↵</button>
-      </div>
-    </section>
-
-    <div class="toast" id="toast" role="status">우측상단에 채팅기능을 활성화 해보세요.</div>
   </main>
+
+  <button class="keyboard-dim" id="chatDim" type="button" aria-label="채팅 입력창 닫기"></button>
+
+  <form class="input-panel" id="inputPanel" autocomplete="off">
+    <span class="count" id="count">0/30</span>
+    <input
+      class="chat-input"
+      id="chatInput"
+      type="text"
+      inputmode="text"
+      maxlength="30"
+      placeholder="채팅을 입력하세요."
+      aria-label="채팅 입력"
+    />
+    <button class="send-btn" type="submit">보내기</button>
+  </form>
+
+  <section class="desktop-keyboard" id="fakeKeyboard" aria-hidden="true">
+    <div class="key-row r1">
+      <button class="key" data-key="ㅂ">ㅂ</button><button class="key" data-key="ㅈ">ㅈ</button><button class="key" data-key="ㄷ">ㄷ</button><button class="key" data-key="ㄱ">ㄱ</button><button class="key" data-key="ㅅ">ㅅ</button><button class="key" data-key="ㅛ">ㅛ</button><button class="key" data-key="ㅕ">ㅕ</button><button class="key" data-key="ㅑ">ㅑ</button><button class="key" data-key="ㅐ">ㅐ</button><button class="key" data-key="ㅔ">ㅔ</button>
+    </div>
+    <div class="key-row r2">
+      <button class="key" data-key="ㅁ">ㅁ</button><button class="key" data-key="ㄴ">ㄴ</button><button class="key" data-key="ㅇ">ㅇ</button><button class="key" data-key="ㄹ">ㄹ</button><button class="key" data-key="ㅎ">ㅎ</button><button class="key" data-key="ㅗ">ㅗ</button><button class="key" data-key="ㅓ">ㅓ</button><button class="key" data-key="ㅏ">ㅏ</button><button class="key" data-key="ㅣ">ㅣ</button>
+    </div>
+    <div class="key-row r3">
+      <button class="key func" data-action="shift">⇧</button><button class="key" data-key="ㅋ">ㅋ</button><button class="key" data-key="ㅌ">ㅌ</button><button class="key" data-key="ㅊ">ㅊ</button><button class="key" data-key="ㅍ">ㅍ</button><button class="key" data-key="ㅠ">ㅠ</button><button class="key" data-key="ㅜ">ㅜ</button><button class="key" data-key="ㅡ">ㅡ</button><button class="key func" data-action="backspace">⌫</button>
+    </div>
+    <div class="key-row r4">
+      <button class="key func" data-key="123">123</button><button class="key func" data-key="😊">😊</button><button class="key space" data-key=" ">스페이스</button><button class="key func enter" data-action="send">↵</button>
+    </div>
+  </section>
+
+  <div class="toast" id="toast" role="status">우측상단에 채팅기능을 활성화 해보세요.</div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    const phone = document.getElementById('phone');
+    const stage = document.getElementById('stage');
     const chatSwitch = document.getElementById('chatSwitch');
     const talkBtn = document.getElementById('talkBtn');
     const inputPanel = document.getElementById('inputPanel');
@@ -389,14 +413,19 @@
     const ROOM_ID = '005930';
     const SUPABASE_URL = 'https://slakmkiwcqycfxiqiiuc.supabase.co';
     const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_BzUwzaEOsLnjDgOFOS_J5g_UvbkgBDH';
-    const supabaseClient = window.supabase?.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
+    const supabaseClient = window.supabase?.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+      realtime: { params: { eventsPerSecond: 10 } }
+    });
+
+    const clientId = crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random());
     const myNickBase = makeNickName();
     const myName = `${myNickBase} (나)`;
-    const pendingLocalMessages = [];
+
     let chatOn = false;
     let inputOpen = false;
     let realtimeStatus = 'INIT';
+    let realtimeChannel = null;
 
     const LONG_PRESS_MS = 320;
     const MOVE_TOLERANCE = 8;
@@ -410,6 +439,21 @@
     let startPointerY = 0;
     let latestPointerX = 0;
     let latestPointerY = 0;
+
+    function blockZoomAndScroll() {
+      ['gesturestart', 'gesturechange', 'gestureend'].forEach((eventName) => {
+        document.addEventListener(eventName, (e) => e.preventDefault(), { passive: false });
+      });
+
+      document.addEventListener('wheel', (e) => {
+        if (e.ctrlKey) e.preventDefault();
+      }, { passive: false });
+
+      document.addEventListener('touchmove', (e) => {
+        if (!inputOpen) e.preventDefault();
+        if (inputOpen && !e.target.closest('.chat-input')) e.preventDefault();
+      }, { passive: false });
+    }
 
     function makeNickName() {
       const a = ['비루한', '배고픈', '성급한', '침착한', '수줍은', '용감한', '행복한'];
@@ -428,16 +472,56 @@
       chatOn = next;
       chatSwitch.setAttribute('aria-checked', String(chatOn));
       chatSwitch.setAttribute('aria-label', chatOn ? '채팅 끄기' : '채팅 켜기');
+      chatLayer.classList.toggle('is-on', chatOn);
 
       if (chatOn) {
         if (!inputOpen) talkBtn.classList.add('is-visible');
-        if (realtimeStatus !== 'SUBSCRIBED') console.log('Realtime not ready yet:', realtimeStatus);
+        if (realtimeStatus !== 'SUBSCRIBED') {
+          console.log('Supabase Realtime 준비 상태:', realtimeStatus);
+        }
       } else {
         closeInput(false);
         clearTalkPressState();
         chatLayer.innerHTML = '';
         talkBtn.classList.remove('is-visible');
       }
+    }
+
+    function getKeyboardHeight() {
+      if (window.visualViewport && isTouchMobile()) {
+        return Math.max(0, window.innerHeight - window.visualViewport.height - window.visualViewport.offsetTop);
+      }
+      if (inputOpen && !isTouchMobile()) {
+        return fakeKeyboard.getBoundingClientRect().height || Math.round(window.innerHeight * 0.34);
+      }
+      return 0;
+    }
+
+    function syncInputLayout() {
+      if (!inputOpen) return;
+
+      const rect = stage.getBoundingClientRect();
+      const keyboardHeight = getKeyboardHeight();
+      const bottomGap = Math.max(8, keyboardHeight + 8);
+      const panelLeft = Math.max(8, rect.left + 8);
+      const panelWidth = Math.max(280, Math.min(rect.width - 16, window.innerWidth - 16));
+      const shift = Math.min(keyboardHeight, Math.round(window.innerHeight * 0.44));
+
+      document.documentElement.style.setProperty('--stage-shift', `${shift}px`);
+      inputPanel.style.left = `${panelLeft}px`;
+      inputPanel.style.width = `${panelWidth}px`;
+      inputPanel.style.bottom = `calc(${bottomGap}px + env(safe-area-inset-bottom))`;
+    }
+
+    function resetInputLayout() {
+      document.documentElement.style.setProperty('--stage-shift', '0px');
+      inputPanel.style.left = '';
+      inputPanel.style.width = '';
+      inputPanel.style.bottom = '';
+    }
+
+    function isTouchMobile() {
+      return matchMedia('(hover: none) and (pointer: coarse)').matches;
     }
 
     function openInput() {
@@ -447,11 +531,18 @@
       chatDim.classList.add('is-open');
       inputPanel.classList.add('is-open');
       if (!isTouchMobile()) fakeKeyboard.classList.add('is-open');
-      syncInputPosition();
-      requestAnimationFrame(() => {
-        chatInput.focus({ preventScroll: false });
-        syncInputPosition();
-      });
+      syncInputLayout();
+
+      // 모바일 자판은 사용자 터치 이벤트 흐름 안에서 즉시 focus해야 가장 잘 올라옵니다.
+      try {
+        chatInput.focus({ preventScroll: true });
+      } catch (_) {
+        chatInput.focus();
+      }
+
+      requestAnimationFrame(syncInputLayout);
+      setTimeout(syncInputLayout, 80);
+      setTimeout(syncInputLayout, 250);
     }
 
     function closeInput(restoreTalk = true) {
@@ -462,44 +553,8 @@
       chatInput.value = '';
       updateCount();
       chatInput.blur();
-      resetInputPanelPosition();
-      phone.style.top = '';
+      resetInputLayout();
       if (restoreTalk && chatOn) talkBtn.classList.add('is-visible');
-    }
-
-    function resetInputPanelPosition() {
-      inputPanel.style.position = '';
-      inputPanel.style.left = '';
-      inputPanel.style.right = '';
-      inputPanel.style.width = '';
-      inputPanel.style.bottom = '';
-      inputPanel.style.zIndex = '';
-    }
-
-    function isTouchMobile() {
-      return matchMedia('(hover: none) and (pointer: coarse)').matches;
-    }
-
-    function syncInputPosition() {
-      if (!inputOpen) return;
-
-      if (window.visualViewport && isTouchMobile()) {
-        const rect = phone.getBoundingClientRect();
-        const keyboardHeight = Math.max(0, window.innerHeight - window.visualViewport.height - window.visualViewport.offsetTop);
-        const keyboardGap = Math.max(8, keyboardHeight + 8);
-        const shift = Math.max(0, keyboardHeight - 12);
-
-        phone.style.top = shift ? `-${shift}px` : '';
-        inputPanel.style.position = 'fixed';
-        inputPanel.style.left = `${Math.max(rect.left + 8, 8)}px`;
-        inputPanel.style.width = `${Math.max(rect.width - 16, 280)}px`;
-        inputPanel.style.right = 'auto';
-        inputPanel.style.bottom = `${keyboardGap}px`;
-        inputPanel.style.zIndex = '1000';
-        return;
-      }
-
-      resetInputPanelPosition();
     }
 
     function enterTalkDragMode() {
@@ -510,15 +565,15 @@
     }
 
     function moveTalkButton(clientX, clientY) {
-      const phoneRect = phone.getBoundingClientRect();
+      const stageRect = stage.getBoundingClientRect();
       const btnRect = talkBtn.getBoundingClientRect();
       const minLeft = 4;
       const minTop = 4;
-      const maxLeft = phoneRect.width - btnRect.width - 4;
-      const maxTop = phoneRect.height - btnRect.height - 4;
+      const maxLeft = stageRect.width - btnRect.width - 4;
+      const maxTop = stageRect.height - btnRect.height - 4;
 
-      const nextLeft = clientX - phoneRect.left - dragOffsetX;
-      const nextTop = clientY - phoneRect.top - dragOffsetY;
+      const nextLeft = clientX - stageRect.left - dragOffsetX;
+      const nextTop = clientY - stageRect.top - dragOffsetY;
       const clampedLeft = Math.max(minLeft, Math.min(nextLeft, maxLeft));
       const clampedTop = Math.max(minTop, Math.min(nextTop, maxTop));
 
@@ -547,18 +602,51 @@
       const text = chatInput.value.slice(0, MAX_LENGTH);
       if (!text.trim()) return;
 
-      addFloatingChat(myName, text);
-      pendingLocalMessages.push({ nickname: myNickBase, message: text, at: Date.now() });
       chatInput.value = '';
       updateCount();
-      chatInput.focus();
-      await saveChatMessage(text);
+      addFloatingChat(myName, text);
+
+      const payload = {
+        room: ROOM_ID,
+        nickname: myNickBase,
+        message: text,
+        client_id: clientId,
+        created_at: new Date().toISOString()
+      };
+
+      await sendRealtimeBroadcast(payload);
+      saveChatMessage(text);
+
+      try {
+        chatInput.focus({ preventScroll: true });
+      } catch (_) {
+        chatInput.focus();
+      }
+      syncInputLayout();
+    }
+
+    async function sendRealtimeBroadcast(payload) {
+      if (!realtimeChannel || realtimeStatus !== 'SUBSCRIBED') {
+        console.warn('Realtime 채널이 아직 준비되지 않았습니다.', realtimeStatus);
+        showToast('실시간 연결 준비중입니다. 잠시 후 다시 보내주세요.', 2200);
+        return;
+      }
+
+      const result = await realtimeChannel.send({
+        type: 'broadcast',
+        event: 'chat',
+        payload
+      });
+
+      console.log('Broadcast 전송 결과:', result);
+      if (result !== 'ok') {
+        showToast('실시간 전송이 지연되고 있습니다.', 2200);
+      }
     }
 
     async function saveChatMessage(message) {
       if (!supabaseClient) {
         console.warn('Supabase client가 준비되지 않았습니다.');
-        if (chatOn) addFloatingChat('시스템', 'Supabase 연결 실패');
         return;
       }
 
@@ -567,54 +655,44 @@
         .insert({ room: ROOM_ID, nickname: myNickBase, message });
 
       if (error) {
-        console.error('채팅 저장 실패:', error);
-        if (chatOn) addFloatingChat('시스템', '채팅 저장 실패');
+        console.error('DB 저장 실패:', error);
+        showToast(`DB 저장 실패: ${error.message}`, 3200);
       }
     }
 
-    function shouldSkipMyEcho(nickname, message) {
-      const now = Date.now();
-      for (let i = pendingLocalMessages.length - 1; i >= 0; i -= 1) {
-        if (now - pendingLocalMessages[i].at > 7000) pendingLocalMessages.splice(i, 1);
-      }
-
-      const foundIndex = pendingLocalMessages.findIndex((item) => item.nickname === nickname && item.message === message);
-      if (foundIndex >= 0) {
-        pendingLocalMessages.splice(foundIndex, 1);
-        return true;
-      }
-      return false;
-    }
-
-    function handleIncomingChat(row) {
-      if (!row || row.room !== ROOM_ID) return;
+    function handleIncomingChat(payload) {
+      if (!payload || payload.room !== ROOM_ID) return;
       if (!chatOn) return;
-      if (shouldSkipMyEcho(row.nickname, row.message)) return;
-      addFloatingChat(row.nickname, String(row.message || '').slice(0, MAX_LENGTH));
+      if (payload.client_id === clientId) return;
+      addFloatingChat(payload.nickname || '익명', String(payload.message || '').slice(0, MAX_LENGTH));
     }
 
     function subscribeRealtimeChat() {
       if (!supabaseClient) {
-        console.warn('Supabase client가 준비되지 않았습니다.');
+        console.warn('Supabase client가 준비되지 않았습니다. CDN 로딩을 확인하세요.');
+        showToast('Supabase 연결 스크립트 로딩 실패', 3200);
         return;
       }
 
-      supabaseClient
-        .channel(`chart-chat:${ROOM_ID}`)
-        .on('postgres_changes', {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'chat_messages',
-          filter: `room=eq.${ROOM_ID}`
-        }, (payload) => handleIncomingChat(payload.new))
-        .subscribe((status) => {
-          realtimeStatus = status;
-          console.log('Supabase Realtime 상태:', status);
-        });
+      realtimeChannel = supabaseClient
+        .channel(`room:${ROOM_ID}:messages`, {
+          config: {
+            broadcast: { self: false }
+          }
+        })
+        .on('broadcast', { event: 'chat' }, ({ payload }) => handleIncomingChat(payload));
+
+      realtimeChannel.subscribe((status, error) => {
+        realtimeStatus = status;
+        console.log('Supabase Broadcast 상태:', status, error || '');
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+          showToast(`실시간 연결 상태: ${status}`, 2600);
+        }
+      });
     }
 
     function addFloatingChat(name, message) {
-      if (!chatOn && name !== '시스템') return;
+      if (!chatOn) return;
       const item = document.createElement('div');
       item.className = 'floating-chat';
       item.style.left = `${Math.floor(5 + Math.random() * 56)}%`;
@@ -720,13 +798,39 @@
         chatInput.value = (chatInput.value + key.dataset.key).slice(0, MAX_LENGTH);
       }
       updateCount();
-      chatInput.focus();
+      try { chatInput.focus({ preventScroll: true }); } catch (_) { chatInput.focus(); }
     });
 
-    window.addEventListener('resize', syncInputPosition);
-    window.visualViewport?.addEventListener('resize', syncInputPosition);
-    window.visualViewport?.addEventListener('scroll', syncInputPosition);
+    window.addEventListener('resize', syncInputLayout);
+    window.visualViewport?.addEventListener('resize', syncInputLayout);
+    window.visualViewport?.addEventListener('scroll', syncInputLayout);
 
+    window.checkChartChat = async function checkChartChat() {
+      const result = {
+        supabaseClientReady: Boolean(supabaseClient),
+        realtimeStatus,
+        room: ROOM_ID,
+        url: SUPABASE_URL
+      };
+
+      if (!supabaseClient) {
+        console.table(result);
+        return result;
+      }
+
+      const selectResult = await supabaseClient
+        .from('chat_messages')
+        .select('id, room, nickname, message, created_at')
+        .eq('room', ROOM_ID)
+        .order('created_at', { ascending: false })
+        .limit(3);
+
+      console.log('DB 조회 테스트:', selectResult);
+      console.table(result);
+      return { ...result, selectResult };
+    };
+
+    blockZoomAndScroll();
     setChatState(false);
     updateCount();
     subscribeRealtimeChat();
